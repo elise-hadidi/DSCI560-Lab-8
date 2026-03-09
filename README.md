@@ -30,3 +30,14 @@ DSCI560-Lab-5/
 ```
 pip install -r requirements.txt
 ```
+
+## Running the Pipeline
+Step 1 – Generate Doc2Vec embeddings:
+```
+python3 Scripts/OTHER SCRIPT.py 
+```
+
+Step 2 – Generate Word2Vec + Bag-of-Words embeddings:
+```
+python3 Scripts/w2vBOW.py Data/output.csv Data/w2v_bow_output.csv <num_bins>
+```
