@@ -21,7 +21,7 @@ DSCI560-Lab-5/
 
 ## Files
 - Scripts/w2vBOW.py: Generates document embeddings using Word2Vec + Bag-of-Words method.
-- Scripts/analysisCluster.py: Runs the Doc2Vec pipeline to generate document embeddings using different parameter configurations.
+- Scripts/analysisCluster.py: Runs the Doc2Vec pipeline to generate document embeddings using different parameter configurations. (Reused from previous Reddit lab). Takes already determined database and clusters using k-means. This script was used several times to generate a new visual for each Doc2Vec configuration.
 - Data/output.csv: Contains the Reddit posts exported from the database in the previous lab. This file is used as the main dataset for generating embeddings and running clustering experiments.
 - Data/mydb.duckdb: The DuckDB file created in the previous lab that stores the scraped Reddit posts in a table and serves as the source of the data exported to output.csv
 
