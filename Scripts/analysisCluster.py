@@ -1,4 +1,4 @@
-#analysis and clusterin
+#analysis and clustering
 import duckdb
 import pandas as pd
 from gensim.models.doc2vec import Doc2Vec,\
@@ -43,18 +43,45 @@ stop_words = set(stopwords.words('english'))
 results["Full_Text"] = [word for word in results["Full_Text"] if word not in stop_words]
 #print(results["Full_Text"])
 
-# preproces the documents, and create TaggedDocuments
+# preprocess the documents, and create TaggedDocuments
 tagged_data = [TaggedDocument(words=word_tokenize(doc.lower()),
                               tags=[str(i)]) for i,
                doc in enumerate(results["Full_Text"])]
 
-# train the Doc2vec model
-model = Doc2Vec(vector_size=30,
-                min_count=2, epochs=50)
-model.build_vocab(tagged_data)
-model.train(tagged_data,
-            total_examples=model.corpus_count,
-            epochs=model.epochs)
+#running 3 trials
+trial_params = [
+    {"vector_size": 100, "window": 8,  "min_count": 5, "workers": 4, "epochs": 60},  # Trial One
+    {"vector_size": 50,  "window": 48, "min_count": 5, "workers": 4, "epochs": 60},  # Trial Two
+    {"vector_size": 200, "window": 4,  "min_count": 5, "workers": 4, "epochs": 60},  # Trial Three
+]
+
+best_model = None
+best_score = -1
+best_trial = -1
+
+for trial_num, params in enumerate(trial_params, start=1):
+    print(f"\nRunning Trial {trial_num}: {params}")
+    trial_model = Doc2Vec(**params)
+    trial_model.build_vocab(tagged_data)
+    trial_model.train(tagged_data,
+                      total_examples=trial_model.corpus_count,
+                      epochs=trial_model.epochs)
+
+    trial_vectors = np.array([trial_model.infer_vector(
+        word_tokenize(doc)) for doc in results["Full_Text"]])
+
+    # Quick 2-cluster silhouette to compare trials
+    trial_labels = KMeans(n_clusters=2, random_state=0).fit_predict(trial_vectors)
+    score = silhouette_score(trial_vectors, trial_labels)
+    print(f"  Trial {trial_num} silhouette score: {score:.4f}")
+
+    if score > best_score:
+        best_score = score
+        best_model = trial_model
+        best_trial = trial_num
+
+print(f"\nBest trial: Trial {best_trial} (silhouette score: {best_score:.4f})")
+model = best_model
 
 # get the document vectors
 results["Vector"] = [model.infer_vector(
@@ -97,7 +124,7 @@ embedding_df["text"] = results["Full_Text"]
 print(optimal_clusters+min_cluster)
 #print(output_df.head())
 
-#----------------------------------------------------
+
 labels = embedding_df["Cluster"].values
 vectors = embedding_df.drop(columns={"Cluster","text"}).values.astype(float)
 
@@ -192,7 +219,7 @@ print(f"0 cluster count {len(print_df[print_df['Cluster']==0])}")
 print(f"1 cluster count {len(print_df[print_df['Cluster']==1])}")
 print(f"total: {len(print_df)}")
 
-# -----------------------------------------------------
+
 if len(sys.argv) >= 3 and sys.argv[1] == "--query":
     user_input = sys.argv[2]
 
